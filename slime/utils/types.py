@@ -35,6 +35,10 @@ class Sample:
     rollout_routed_experts: list[list[int]] | None = None  # Routed experts from rollout engine
     remove_sample: bool = False
     teacher_log_probs: list[float] | None = None  # Log probabilities from teacher model for OPD
+    # Top-K teacher distribution per response token, for distribution-level
+    # (full-vocab) distillation losses. Shapes: [response_length, K].
+    teacher_top_ids: list[list[int]] | None = None
+    teacher_top_logprobs: list[list[float]] | None = None
 
     class Status(Enum):
         PENDING = "pending"

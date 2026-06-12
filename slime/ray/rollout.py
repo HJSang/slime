@@ -776,6 +776,11 @@ class RolloutManager:
         if samples[0].teacher_log_probs is not None:
             train_data["teacher_log_probs"] = [sample.teacher_log_probs for sample in samples]
 
+        # Top-K teacher distribution for distribution-level distillation losses.
+        if samples[0].teacher_top_ids is not None:
+            train_data["teacher_top_ids"] = [sample.teacher_top_ids for sample in samples]
+            train_data["teacher_top_logprobs"] = [sample.teacher_top_logprobs for sample in samples]
+
         return train_data
 
     def set_train_parallel_config(self, config: dict):
@@ -825,6 +830,8 @@ class RolloutManager:
                 "rollout_routed_experts",
                 "prompt",
                 "teacher_log_probs",
+                "teacher_top_ids",
+                "teacher_top_logprobs",
             ]:
                 if key not in data:
                     continue

@@ -297,6 +297,23 @@ class MegatronTrainRayActor(TrainRayActor):
             rollout_data["rollout_routed_experts"] = [
                 torch.from_numpy(r) for r in rollout_data["rollout_routed_experts"]
             ]
+        # Top-K teacher distribution per response token ([R, K] per sample).
+        # 2-D per-token fields are not CP-sliced (slice_log_prob_with_cp is 1-D),
+        # so distribution-level distillation requires CP=1 for now.
+        if "teacher_top_ids" in rollout_data:
+            assert mpu.get_context_parallel_world_size() == 1, (
+                "teacher_top_ids/teacher_top_logprobs do not support context parallelism yet; "
+                "set context-parallel-size to 1."
+            )
+            device = torch.cuda.current_device()
+            rollout_data["teacher_top_ids"] = [
+                torch.tensor(np.asarray(v), dtype=torch.long, device=device)
+                for v in rollout_data["teacher_top_ids"]
+            ]
+            rollout_data["teacher_top_logprobs"] = [
+                torch.tensor(np.asarray(v), dtype=torch.float32, device=device)
+                for v in rollout_data["teacher_top_logprobs"]
+            ]
         return rollout_data
 
     def _switch_model(self, target_tag: str) -> None:
